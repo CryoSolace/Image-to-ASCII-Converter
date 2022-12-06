@@ -4,7 +4,7 @@ import os
 
 max_size = 500
 
-binToBraille = {
+binToBraille = { # Dictionary for converting binary to braille.
     "000000":"⠠",
 
     "100000":"⠁",
@@ -92,9 +92,9 @@ def toBW(arr):
             arr (array): An array with 3 values
         
         Returns: 
-            [1] or [0]: Array representation of white or black
+            1 or 0 (int): Integer representing white or black, depending on if the average is closer to 0 or 255.
     '''
-    return 0 if ( int(arr[0]) + int(arr[1]) + int(arr[2]))/3 >= 255/2 else 1
+    return 0 if ( int(arr[0]) + int(arr[1]) + int(arr[2]))/3 >= 255/2 else 1 # 0 and 1 may be interchanged here to produce the inverse (negative) effect.
     # Returns 1 or 0 depending on if it's closer to white or black
 
 for f in os.listdir("test_images"):
@@ -102,8 +102,10 @@ for f in os.listdir("test_images"):
         i = Image.open(f'test_images\{f}')
         i = ImageEnhance.Contrast(i).enhance(10)
         i = ImageEnhance.Sharpness(i).enhance(0.1)
+        # Numbers above found by trial and error. Contrast is the most significant factor for the final output.
+
         i.thumbnail((max_size,max_size))
-        i = i.convert("L") # Converts to greyscale by luminosity
+        i = i.convert("L") # Converts to greyscale by luminosity 
 
         fn, fext = os.path.splitext(f)
 
@@ -116,64 +118,51 @@ for f in os.listdir("test_images"):
                 # When converted, the image loses a dimension because of how .convert("L") works, so we put it into an array first.
                 bwArr[line][pixel] = toBW(np.array([val,val,val]))
 
-      
-        print(len(bwArr[2]),len(bwArr))
-
         bwArr = bwArr.tolist()
 
+         # Fixes how every value was in an array and as a float for some reason
         newArr = [[] for _ in range(int(len(bwArr)))]
         for row in range(len(bwArr)):
             for arr in bwArr[row]:
                 newArr[row].append(int(arr[0]))
-        # Fixes how every value was in an array and as a float
+       
         bwArr = newArr
 
+        # Converts the array so that the number of rows and columns can be converted into the 3x2 braille equivalent
         if len(bwArr[0]) % 2 != 0:
             for line in range(len(bwArr)):
                 bwArr[line] += [0]
-        if len(bwArr[0]) % 3 != 0:
+        if len(bwArr) % 3 != 0:
             for line in range(3 - len(bwArr) % 3):
                 bwArr.append([0] * int(len(bwArr[0])))
-        # Converts the array so that the number of rows and columns can be converted into the 3x2 braille equivalent
-
-        # print(len(bwArr[0]),len(bwArr))
-
         
-        # print(len(output))
 
-        '''
-        1 4 1 4
-        2 5 2 5
-        3 6 3 6
-        1 4 1 4
-        2 5 2 5
-        3 6 3 6
 
-        '''
-
+        # Very resource expensive iteration to go through each group of 3x2 pixels and convert into a string of binary.
         binOutput = [[] for _ in range(int(len(bwArr)/3))]
         for rowTriplet in range(int(len(bwArr)/3)):
             for colDuplet in range(int(len(bwArr[0])/2)):
                 stringPush = ""
                 for col in range(2):
                     for row in range(3):
-                        #print(str(int(bwArr[3*rowTriplet + row][2*colDuplet + col][0])))
-                        stringPush += str(bwArr[3*rowTriplet + row][2*colDuplet + col])
-                
-                # print(stringPush)        
+                        stringPush += str(bwArr[3*rowTriplet + row][2*colDuplet + col])       
                 binOutput[rowTriplet].append(stringPush)
 
+        # Braille conversion from the binary string.
         output = [[] for _ in range(int(len(binOutput)))]
         for row in range(len(binOutput)):
             for num in binOutput[row]:
                 output[row].append(binToBraille[str(num)])
 
         
-
+        # Prints final output    
         for i in output:
             temp = ""
             for j in i:
                 temp += str(j)
             print(temp) 
-        # Prints final output
+        
+
+        print(f"{fn}{fext} printed successfully.")
+        
 

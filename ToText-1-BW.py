@@ -12,7 +12,7 @@ def toBW(arr):
             arr (array): An array with 3 values
         
         Returns: 
-            [1] or [0]: Array representation of white or black
+            [1] or [0] (np.array): Array representation of white or black
     '''
     return np.array([1]) if ( int(arr[0]) + int(arr[1]) + int(arr[2]))/3 >= 255/2 else np.array([0]) 
     # Returns 1 or 0 depending on if it's closer to white or black
@@ -20,9 +20,11 @@ def toBW(arr):
 for f in os.listdir("test_images"):
     if f.endswith(".jpg"):
         i = Image.open(f'test_images\{f}')
-        i = ImageEnhance.Contrast(i).enhance(5)
+        i = ImageEnhance.Contrast(i).enhance(10)
         i = ImageEnhance.Sharpness(i).enhance(0.1)
         #i = i.filter(ImageFilter.GaussianBlur(radius = 0.5)) # doesnt work too well
+        # Contrast is the most important setting here.
+
         i.thumbnail((max_size,max_size))
         i = i.convert("L") # Converts to greyscale by luminosity
 
@@ -41,11 +43,12 @@ for f in os.listdir("test_images"):
         output = [[] for _ in range(len(bwArr))] # The final string to be printed
 
         for line in range(len(bwArr)): 
-            # Line here a two dimensional array, with each array as a row and each value in the array as a pixel value
+            # line here a two dimensional array, with each array as a row and each value in the array as a 1 or 0.
             for pixel in range(len(bwArr[line])):
                 # Adds . or # to the output depending on if closer to black or white
-                if bwArr[line][pixel] == 1: output[line] += "." 
-                else: output[line] += "#"
+                # But, in this case, we use two characters instead of one because characters are taller than they are wide, and this compensates for that.
+                if bwArr[line][pixel] == 1: output[line] += ".." 
+                else: output[line] += "##"
 
 
         # Prints final output
@@ -55,4 +58,4 @@ for f in os.listdir("test_images"):
                 temp += str(j)
             print(temp) 
 
-
+        print(f"{fn}{fext} printed successfully.")
